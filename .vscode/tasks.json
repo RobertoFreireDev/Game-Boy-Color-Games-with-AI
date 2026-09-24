@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "Build", "type": "shell",
+      "command": "${workspaceFolder}/build.bat",
+      "linux": { "command": "./build.sh" }, "osx": { "command": "./build.sh" },
+      "group": { "kind": "build", "isDefault": true }, "problemMatcher": [] },
+    { "label": "Run", "type": "shell",
+      "command": "${workspaceFolder}/run.bat",
+      "linux": { "command": "emulicious build/game.gb" },
+      "osx": { "command": "emulicious build/game.gb" },
+      "dependsOn": "Build", "problemMatcher": [] }
+  ]
+}

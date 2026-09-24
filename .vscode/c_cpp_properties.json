@@ -1,0 +1,11 @@
+{
+  "configurations": [{
+    "name": "GBDK",
+    "includePath": ["${env:GBDK_HOME}/include", "${workspaceFolder}/src", "${workspaceFolder}/assets"],
+    "defines": ["__PORT_sm83", "__TARGET_gb", "__SDCC", "NONBANKED=", "BANKED=", "CRITICAL=",
+                "__critical=", "__banked=", "__nonbanked=", "__at(x)=", "__sfr=", "__naked=",
+                "__interrupt=", "__reentrant="],
+    "cStandard": "c99", "intelliSenseMode": "gcc-x86"
+  }],
+  "version": 4
+}
