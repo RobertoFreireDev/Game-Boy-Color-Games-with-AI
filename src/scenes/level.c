@@ -35,12 +35,13 @@ static const anim_def_t anim_walk[4] = {
 static const char * const pause_options[] = { "CONTINUE", "RESTART", "QUIT TO TITLE" };
 
 static void hud_update(void) {
-    text_print_num_win(6, 0, MIN(moves, 999), 3);
+    text_print_num_win(11, 0, MIN(moves, 999), 3);
     text_print_num_win(17, 0, MIN(pushes, 999), 3);
 }
 
 static void hud_show(void) {
-    text_print_win(0, 0, "MOVES 000   PUSH 000");
+    text_print_win(0, 0, "LEVEL 00 M 000 P 000");
+    text_print_num_win(6, 0, game_level + 1, 2);
     hud_update();
     move_win(7, 136);
     SHOW_WIN;
@@ -52,11 +53,10 @@ static void hero_snap(void) {
 }
 
 static void level_enter(void) {
-    map_load(&map_level1, 0);
+    board_load(game_level);
     cam_set(0, 0);
     gfx_load_sprite(&spr_hero, &spr_player, 0);
     gfx_load_sprite(&spr_box, &spr_crate, 0);
-    board_load();
     hero_snap();
     facing = DIR_DOWN;
     moving = 0; box_moving = 0;
@@ -125,6 +125,7 @@ static void finish_step(void) {
     if (board_solved()) {
         state = ST_WON; timer = 0;
         game_moves = moves; game_pushes = pushes;
+        game_record_solve();
         music_play(&mus_solved);
     }
 }
@@ -151,7 +152,8 @@ static void level_update(void) {
         facing = DIR_DOWN;
         draw_sprites();
         if (++timer == 90) {
-            dialog_show("All crates are in place. Great work!");
+            dialog_show(game_level + 1 < LEVEL_COUNT ? "All crates are in place. Great work!"
+                                                     : "The whole warehouse is in order!");
             scene_goto(&scene_solved, TRANS_FADE_WHITE);
         }
         return;

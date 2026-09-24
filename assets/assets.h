@@ -12,7 +12,13 @@ extern const sprite_def_t spr_player, spr_crate;
 
 /* tilesets + maps */
 extern const tileset_def_t ts_sokoban;
-extern const map_def_t map_level1, map_title;
+extern const map_def_t map_title;
+
+/* levels (cell view, see map_levels.c) */
+#define LEVEL_COUNT 16
+#define LEVEL_H 8                           /* strings per level, 10 chars each */
+extern const char * const map_levels[];
+extern const map_legend_t map_levels_legend[];
 
 /* font */
 extern const uint8_t font_main[], font_box_tiles[];

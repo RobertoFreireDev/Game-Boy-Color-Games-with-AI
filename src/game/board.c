@@ -1,4 +1,5 @@
 #include "engine/engine.h"
+#include "assets.h"
 #include "game/board.h"
 
 #define HIST_MAX 64            /* undo depth (ring buffer, power of 2) */
@@ -19,24 +20,43 @@ static const char cell_chars[4][4] = {
     { 'W', 'X', 'Y', 'Z' },    /* crate on goal */
 };
 
-void board_load(void) {
+/* the play map is built in RAM from the level's cell strings (each cell = 2x2 tiles) */
+static char map_buf[BOARD_H * 2][BOARD_W * 2];
+static const char *map_rows[BOARD_H * 2];
+static const map_def_t map_play = { BOARD_W * 2, BOARD_H * 2, map_rows, map_levels_legend, &ts_sokoban };
+
+void board_load(uint8_t level) {
+    const char * const *cells = &map_levels[level * LEVEL_H];
+    const char *q;
     uint8_t cx, cy, i = 0;
     char c;
     goal_count = 0;
     hist_head = hist_len = 0;
     for (cy = 0; cy < BOARD_H; cy++) {
         for (cx = 0; cx < BOARD_W; cx++, i++) {
-            c = map_char(cx << 1, cy << 1);
+            c = (cy < LEVEL_H) ? cells[cy][cx] : ' ';
+            board[i] = 0;
             switch (c) {
             case '#': case ' ': board[i] = CELL_WALL; break;
-            case 'a': board[i] = CELL_GOAL; goal_count++; break;
-            case 'B': board[i] = CELL_BOX; break;
-            case 'W': board[i] = CELL_BOX | CELL_GOAL; goal_count++; break;
-            case 'P': board[i] = 0; player_cell = i; break;
-            default:  board[i] = 0; break;
+            case '.': board[i] = CELL_GOAL; break;
+            case '$': board[i] = CELL_BOX; break;
+            case '*': board[i] = CELL_BOX | CELL_GOAL; break;
+            case '@': player_cell = i; break;
+            case '+': board[i] = CELL_GOAL; player_cell = i; break;
+            default: break;
             }
+            if (board[i] & CELL_GOAL) goal_count++;
+            if (c == '#') q = "####";
+            else if (board[i] & CELL_WALL) q = "    ";
+            else q = cell_chars[(board[i] & (CELL_BOX | CELL_GOAL)) >> 1];
+            map_buf[cy << 1][cx << 1]             = q[0];
+            map_buf[cy << 1][(cx << 1) + 1]       = q[1];
+            map_buf[(cy << 1) + 1][cx << 1]       = q[2];
+            map_buf[(cy << 1) + 1][(cx << 1) + 1] = q[3];
         }
     }
+    for (cy = 0; cy < BOARD_H * 2; cy++) map_rows[cy] = map_buf[cy];
+    map_load(&map_play, 0);
 }
 
 int16_t cell_px_x(uint8_t i) { return (int16_t)(i % BOARD_W) << 4; }

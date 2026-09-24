@@ -35,6 +35,7 @@ void scene_update(void) {
     if (cur->leave) cur->leave();
     scene_reset_screen(); gfx_reset(); tween_clear(); particles_clear(); cam_reset();
     cur = pending; pending = 0;
+    keys_prev = keys;           /* the press that caused the transition must not count again in the new scene */
     cur->enter();
     run_frame();
     if (pending_trans != TRANS_NONE) fade_in(4, white); else fade_set_level(0);

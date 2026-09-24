@@ -28,7 +28,7 @@ extern uint8_t board[BOARD_SIZE];
 extern uint8_t player_cell;
 extern const int8_t dir_off[4];
 
-void board_load(void);                  /* reads the currently loaded map (map_load first) */
+void board_load(uint8_t level);         /* builds + map_loads the level (0..LEVEL_COUNT-1), resets undo */
 void board_draw_cell(uint8_t i);        /* redraws the 2x2 BG tiles of a cell from its state */
 uint8_t board_try_move(uint8_t dir);    /* MOVE_*; updates state + undo history, draws nothing */
 uint8_t board_undo(void);               /* UNDO_NONE or UNDO_DONE | dir | UNDO_PUSHED; redraws cells */
