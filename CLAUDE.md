@@ -8,7 +8,8 @@ Read this whole file before any task. Follow its conventions exactly — the eng
 
 ## 0. Golden rules
 
-1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no Python/JS tools, no asset converters. Assets are `.c` files.
+1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no asset converters. Assets are `.c` files.
+   For helper scripts during development (checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project.
 2. **Target: Game Boy Color only** (`-Wm-yC`). Always use CGB features: palettes, VRAM bank 1, BG attributes.
 3. **Respect hardware limits** (section 4). If a design exceeds them, change the design, don't hope.
 4. **No floats, no `malloc`, no recursion, no `printf` in game code.** Use integers and fixed point (section 9).
