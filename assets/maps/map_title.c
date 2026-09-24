@@ -2,7 +2,7 @@
 extern const tileset_def_t ts_sokoban;
 
 /* Title and "solved" screen background. Text is printed over the void bands
-   (rows 2-5 and 12-13); the player sprite stands at cells (4,8), left of the crate. */
+   (rows 2-5 and 12-15); the player sprite stands at cells (4,8), left of the crate. */
 static const char * const rows[] = {
  /*           1111111111 */
  /* 01234567890123456789 */
@@ -20,8 +20,8 @@ static const char * const rows[] = {
    "##----------------##",   /* 11 */
    "##                ##",   /* 12 */
    "##                ##",   /* 13 */
-   "##----------------##",   /* 14 */
-   "##----------------##",   /* 15 */
+   "##                ##",   /* 14 */
+   "##                ##",   /* 15 */
    "####################",   /* 16 */
    "####################",   /* 17 */
 };

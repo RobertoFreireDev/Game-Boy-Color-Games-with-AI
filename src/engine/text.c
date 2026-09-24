@@ -4,7 +4,7 @@ extern const uint8_t font_main[], font_box_tiles[];
 extern const sfx_t sfx_menu;
 
 /* 0 = box background, 1 = shadow, 2 = border, 3 = text */
-static const palette_color_t pal_ui_default[4] = {
+const palette_color_t pal_ui_default[4] = {
     RGB8(24, 24, 40), RGB8(8, 8, 16), RGB8(112, 136, 216), RGB8(248, 248, 232)
 };
 

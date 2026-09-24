@@ -10,7 +10,7 @@
 
 #define STEP_FRAMES 8          /* one cell (16 px) in 8 frames = 2 px per frame */
 
-static sprite_t spr_hero, spr_box;
+static sprite_t spr_hero, spr_box, spr_fx;
 static anim_t hero_anim;
 static uint8_t state, timer;
 static uint8_t facing;
@@ -19,6 +19,7 @@ static uint8_t box_moving, box_dest;
 static int16_t hero_x, hero_y, box_x, box_y;   /* world pixels */
 static uint16_t moves, pushes;
 static uint8_t help_shown;             /* the help dialog appears once per power-on */
+static uint8_t pulse;                  /* goal palette animation */
 
 static const uint8_t dir_keys[4] = { J_UP, J_DOWN, J_LEFT, J_RIGHT };
 static const int8_t dir_dx[4] = { 0, 0, -2, 2 };
@@ -31,6 +32,14 @@ static const anim_def_t anim_idle[4] = {
     { fr_up, 1, 1, 1 }, { fr_down, 1, 1, 1 }, { fr_side, 1, 1, 1 }, { fr_side, 1, 1, 1 } };
 static const anim_def_t anim_walk[4] = {
     { fr_up_walk, 2, 4, 1 }, { fr_down_walk, 2, 4, 1 }, { fr_side_walk, 2, 4, 1 }, { fr_side_walk, 2, 4, 1 } };
+
+/* solved: spin twice (down, right, up, left = right flipped), then stop facing down */
+static const uint8_t fr_spin[] = { 0, 4, 2, 4, 0, 4, 2, 4, 0 };
+static const anim_def_t anim_spin = { fr_spin, 9, 5, 0 };
+
+/* sprite, speed, up, gravity, life */
+static const particle_style_t st_goal = { &spr_fx, 16, -24, 2, 30 };
+static const particle_style_t st_win  = { &spr_fx, 32, -40, 2, 40 };
 
 static const char * const pause_options[] = { "CONTINUE", "RESTART", "QUIT TO TITLE" };
 
@@ -57,10 +66,12 @@ static void level_enter(void) {
     cam_set(0, 0);
     gfx_load_sprite(&spr_hero, &spr_player, 0);
     gfx_load_sprite(&spr_box, &spr_crate, 0);
+    gfx_load_sprite(&spr_fx, &spr_spark, 0);
     hero_snap();
     facing = DIR_DOWN;
     moving = 0; box_moving = 0;
     moves = 0; pushes = 0;
+    pulse = 0;
     hero_anim.def = 0;
     anim_play(&hero_anim, &anim_idle[DIR_DOWN]);
     hud_show();
@@ -72,6 +83,7 @@ static void draw_sprites(void) {
     spr_draw(&spr_hero, anim_frame(&hero_anim), W2S_X(hero_x), W2S_Y(hero_y),
              facing == DIR_LEFT ? SPR_FLIPX : 0);
     if (box_moving) spr_draw(&spr_box, 0, W2S_X(box_x), W2S_Y(box_y), 0);
+    particles_update();
 }
 
 static void start_step(uint8_t dir) {
@@ -79,7 +91,7 @@ static void start_step(uint8_t dir) {
     facing = dir;
     r = board_try_move(dir);
     if (r == MOVE_BLOCKED) {
-        if (KEY_PRESSED(dir_keys[dir])) sfx_play(&sfx_bump);
+        if (KEY_PRESSED(dir_keys[dir])) { sfx_play(&sfx_bump); cam_shake(6, 1); }
         return;
     }
     moving = STEP_FRAMES;
@@ -120,18 +132,30 @@ static void finish_step(void) {
     if (box_moving) {
         box_moving = 0;
         board_draw_cell(box_dest);
-        if (board[box_dest] & CELL_GOAL) sfx_play(&sfx_goal);
+        if (board[box_dest] & CELL_GOAL) {
+            sfx_play(&sfx_goal);
+            particles_emit(cell_px_x(box_dest) + 4, cell_px_y(box_dest) + 4, 6, &st_goal);
+        }
     }
     if (board_solved()) {
         state = ST_WON; timer = 0;
         game_moves = moves; game_pushes = pushes;
         game_record_solve();
+        music_stop();
+        fade_out(1, 1);                           /* quick white flash */
+        fade_in(1, 1);
         music_play(&mus_solved);
+        particles_emit(hero_x + 4, hero_y, 8, &st_win);
+        anim_play(&hero_anim, &anim_spin);
     }
 }
 
 static void level_update(void) {
     uint8_t d;
+
+    /* goal marks pulse (palette animation), camera applies the bump shake */
+    if ((++pulse & 15) == 0) gfx_set_bkg_palette(2, (pulse & 16) ? pal_wh_goal_glow : pal_wh_goal);
+    cam_follow(80, 72);
 
     if (state == ST_INTRO) {
         draw_sprites();
@@ -148,8 +172,10 @@ static void level_update(void) {
     }
 
     if (state == ST_WON) {
-        anim_play(&hero_anim, &anim_idle[DIR_DOWN]);
-        facing = DIR_DOWN;
+        anim_update(&hero_anim);
+        facing = ((hero_anim.i & 3) == 3) ? DIR_LEFT : DIR_DOWN;
+        if (hero_anim.done && (timer & 7) == 0)   /* flash gold after the spin */
+            gfx_set_obj_palette(0, (timer & 8) ? pal_player_gold : pal_player);
         draw_sprites();
         if (++timer == 90) {
             dialog_show(game_level + 1 < LEVEL_COUNT ? "All crates are in place. Great work!"
@@ -162,7 +188,7 @@ static void level_update(void) {
     /* 1. input (only between steps) */
     if (!moving) {
         if (KEY_PRESSED(J_START)) { draw_sprites(); pause_menu(); return; }
-        if (KEY_PRESSED(J_SELECT)) { scene_goto(&scene_level, TRANS_FADE_BLACK); }
+        if (KEY_PRESSED(J_SELECT)) { scene_goto(&scene_level, TRANS_NONE); }        /* instant restart */
         else if (KEY_PRESSED(J_B)) do_undo();
         else {
             for (d = 0; d < 4; d++) if (KEY_HELD(dir_keys[d])) { start_step(d); break; }

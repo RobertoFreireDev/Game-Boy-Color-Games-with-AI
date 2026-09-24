@@ -7,6 +7,8 @@
 #define BOX_TILE0  224                     /* TL, T, TR, L, FILL, R, BL, B, BR, NEXT (bank 1) */
 #define BOX_TILE(n) ((uint8_t)(BOX_TILE0 + (n)))
 
+extern const palette_color_t pal_ui_default[4];   /* engine default UI colors (restore after text_set_colors) */
+
 void text_init(void);
 void text_set_colors(const palette_color_t *c4);   /* BG palette 7 */
 void text_print(uint8_t x, uint8_t y, const char *s);      /* BG layer, relative to camera */
