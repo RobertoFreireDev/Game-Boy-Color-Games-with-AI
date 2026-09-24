@@ -26,11 +26,6 @@ Read this whole file before any task. Follow its conventions exactly — the eng
 
 1. **GBDK-2020**: download the latest `gbdk-win64.zip` from https://github.com/gbdk-2020/gbdk-2020/releases and extract it to `C:\gbdk` (so `C:\gbdk\bin\lcc.exe` exists). Then run once in a terminal:
    `setx GBDK_HOME C:\gbdk`
-2. **Emulicious** (accurate emulator with tile/palette/memory viewers): download from https://emulicious.net, extract to `C:\Emulicious`, then:
-   `setx EMULICIOUS C:\Emulicious\Emulicious.exe`
-   (Emulicious needs Java; the site explains which download includes it.)
-3. **Visual Studio Code** extensions: *C/C++* (`ms-vscode.cpptools`). Optional: *Emulicious Debugger* for stepping through C code (see its README; build with `-debug`).
-4. Restart VS Code so it sees the new environment variables.
 
 Linux/macOS: extract GBDK anywhere, `export GBDK_HOME=/path/to/gbdk`, and use `build.sh`.
 
