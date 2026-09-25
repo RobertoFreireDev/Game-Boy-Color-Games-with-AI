@@ -87,6 +87,8 @@ my-game/
 │   ├── fonts/                ← font_main.c (font + box tiles + sfx_menu; shared by every game)
 │   ├── music/                ← mus_*.c
 │   └── sfx/                  ← sfx_all.c (or sfx_*.c)
+├── tools/
+│   └── pixel-editor.html     ← browser pixel editor for source_art PNGs (GBC palette rules built in); never built
 └── source_art/               ← PNGs pasted by the human, converted by the AI (section 14); never built
     ├── spritesheets/         ← <name>.png (+ <name>.txt notes) → assets/sprites/spr_<name>.c
     └── mapsheets/            ← <name>.png (+ <name>.txt notes) → assets/tilesets/ts_*.c + assets/maps/map_<name>.c

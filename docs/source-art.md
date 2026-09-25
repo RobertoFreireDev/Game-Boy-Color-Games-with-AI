@@ -4,7 +4,7 @@ Read when: `source_art/` contains PNGs to convert (new or replaced). The helper 
 
 ## 14. Source art pipeline (PNG → C assets)
 
-The human can draw in any pixel editor and paste PNGs into `source_art/`. You turn them into the normal C assets of section 6 ([graphics.md](graphics.md)); from then on the C file is the asset and the PNG is only its source. Formats the human must follow, and example notes files, are in `source_art/spritesheets/file.txt` and `source_art/mapsheets/file.txt`.
+The human can draw in any pixel editor and paste PNGs into `source_art/`. `tools/pixel-editor.html` (open it in Chrome/Edge; one self-contained file, not part of the build) is made for this: colors are RGB555, sizes are multiples of 8, it outlines tiles that break the per-tile palette rules below, counts unique map tiles, and exports `<name>.png` plus the `<name>.txt` notes. You turn them into the normal C assets of section 6 ([graphics.md](graphics.md)); from then on the C file is the asset and the PNG is only its source. Formats the human must follow, and example notes files, are in `source_art/spritesheets/file.txt` and `source_art/mapsheets/file.txt`.
 
 | Put in | Becomes |
 |---|---|
