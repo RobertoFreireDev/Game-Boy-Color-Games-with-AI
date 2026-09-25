@@ -1,0 +1,28 @@
+source_art/spritesheets/ — PNG sprite sheets pasted by the human. The AI converts each one into
+assets/sprites/spr_<name>.c (tiles + palette + sprite_def_t) and the animation frame lists in game code.
+PNGs here are source files only: the build never reads them. Full process: CLAUDE.md section 14.
+
+---- what to put here ---------------------------------------------------------
+<name>.png   the sheet (required). Name = lowercase letters, digits, underscores: player.png -> spr_player
+<name>.txt   notes for the AI (optional, but without it the AI guesses frame size and animations)
+
+---- how to draw the PNG ------------------------------------------------------
+- 1 image pixel = 1 Game Boy pixel. Upscaled art is fine if the notes say "scale: N" (whole numbers).
+- All frames have the same size, a multiple of 8: 8x8, 8x16, 16x16, 16x24, 24x24, 32x32.
+- Frames sit in a grid with no gaps. One row per animation, frames left to right.
+- Transparent = alpha 0, or magenta #FF00FF on images without alpha.
+- At most 3 visible colors in the whole sprite (one sprite palette; the 4th slot is transparency).
+  More colors only if the notes say which part goes on an overlay sprite (costs extra sprites).
+- Draw the character facing RIGHT; left is the same frames flipped by the engine.
+- A 1-pixel dark outline keeps the sprite readable on any background.
+
+---- player.txt (example notes) -----------------------------------------------
+frame: 16x16
+scale: 1
+pal_slot: 0
+animations (row: name, frames, frames per step, loop or once):
+  row 0: idle, 2, 20, loop
+  row 1: walk, 4, 8, loop
+  row 2: jump, 1
+  row 3: hurt, 2, 6, once
+notes: hitbox 12x14 at the feet; row 2 is also used for falling

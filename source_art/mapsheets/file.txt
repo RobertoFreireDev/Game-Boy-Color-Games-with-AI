@@ -1,0 +1,29 @@
+source_art/mapsheets/ — PNG maps and tile sheets pasted by the human. The AI cuts each map into 8x8
+tiles, removes duplicates (flipped copies included), and writes assets/tilesets/ts_<tileset>.c plus
+assets/maps/map_<name>.c (ASCII rows + legend). PNGs here are source files only: the build never
+reads them. Full process: CLAUDE.md section 14.
+
+---- what to put here ---------------------------------------------------------
+<name>.png   a whole map (level, title screen, menu background) or a tile sheet
+<name>.txt   notes for the AI (optional, but game meaning such as solid/hazard/spawn can't be seen)
+
+---- how to draw the PNG ------------------------------------------------------
+- 1 image pixel = 1 Game Boy pixel. Upscaled art is fine if the notes say "scale: N" (whole numbers).
+- Width and height are multiples of 8. Whole maps: 160x144 (one screen, 20x18 tiles) up to
+  1600x1600 (200x200 tiles). Tile art must line up with the 8x8 grid starting at the top-left corner.
+- Each 8x8 cell uses at most 4 colors, all from one palette.
+- The whole map uses at most 7 palettes of 4 colors and at most 128 different 8x8 tiles
+  (a tile and its mirror image count once). Repeat tiles: that's what keeps the count low.
+- Leave characters, enemies and items out of the map: they are sprites. Mark where they start in the notes.
+- A tile sheet (tiles in a grid, no map) is also fine; then the AI draws the map in ASCII from the notes.
+
+---- forest1.txt (example notes) ----------------------------------------------
+type: map               (map | tiles | title)
+tileset: forest         (maps that share a tileset name share one ts_forest.c; max 128 tiles together)
+scale: 1
+solid: brown bricks, grey stone blocks
+oneway: wooden planks
+hazard: red spikes, water
+over: the fence bars (drawn in front of sprites)
+spawn: player at tile (3, 20); enemies at (18, 20), (40, 12); coins at (10, 15), (11, 15)
+trigger: door at tile (76, 18) = level exit

@@ -1,0 +1,35 @@
+assets/music/ — mus_*.c: one song per file, 4 channel byte streams. 1 tick = 16th note, fpt = frames
+per tick (BPM ~ 900 / fpt). CH2 melody, CH1 harmony (SFX interrupt it), CH3 bass, CH4 drums.
+Every channel's looped part must last the same number of ticks (or a divisor): count them per bar.
+Music data is never banked. Full conventions: CLAUDE.md sections 6.7 and 11.
+
+---- mus_theme.c (C major, fpt 7 = ~128 BPM, loop 32 ticks) -----------------
+#include "engine/engine.h"
+
+static const uint8_t ch1[] = {           /* harmony */
+    INST(INST_SOFT), MUS_LOOP_POINT,
+    N(G4,L4), N(D5,L4), N(C5,L4), N(B4,L4),     /* bar 1: 16 */
+    N(A4,L4), N(G4,L4), N(B4,L2),               /* bar 2: 16 */
+    MUS_LOOP
+};
+static const uint8_t ch2[] = {           /* melody */
+    INST(INST_LEAD), MUS_LOOP_POINT,
+    N(E5,L8), N(G5,L8), N(C6,L4), N(B5,L8), N(G5,L8), N(A5,L4),   /* bar 1: 16 */
+    N(G5,L8), N(E5,L8), N(F5,L8), N(D5,L8), N(C5,L2),             /* bar 2: 16 */
+    MUS_LOOP
+};
+static const uint8_t ch3[] = {           /* bass */
+    INST(WAVE_TRI), MUS_LOOP_POINT,
+    N(C3,L4), N(G3,L4), N(A3,L4), N(E3,L4),     /* bar 1: 16 */
+    N(F3,L4), N(C3,L4), N(G3,L2),               /* bar 2: 16 */
+    MUS_LOOP
+};
+static const uint8_t ch4[] = {           /* drums */
+    MUS_LOOP_POINT,
+    D(KICK,L8), D(HAT,L8), D(SNARE,L8), D(HAT,L8),   /* half bar: 8 */
+    MUS_LOOP
+};
+const song_t mus_theme = { 7, { ch1, ch2, ch3, ch4 } };
+
+---- assets.h ---------------------------------------------------------------
+extern const song_t mus_theme;

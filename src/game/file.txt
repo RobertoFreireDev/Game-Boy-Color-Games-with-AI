@@ -1,0 +1,41 @@
+src/game/ — game logic shared by scenes: player, enemies, entities, game state.
+State that survives scene changes (score, lives, level) goes in state.c. Every function is declared
+in a header. Fixed-size entity arrays with an active flag, uint8_t indices, no malloc/floats.
+Full conventions: CLAUDE.md sections 7 and 9.
+
+---- state.h ----------------------------------------------------------------
+#ifndef STATE_H
+#define STATE_H
+#include "engine/engine.h"
+extern uint16_t game_score;
+extern uint8_t game_lives, game_level;
+void state_new_game(void);
+#endif
+
+---- state.c ----------------------------------------------------------------
+#include "engine/engine.h"
+#include "state.h"
+
+uint16_t game_score;
+uint8_t game_lives, game_level;
+
+void state_new_game(void) {
+    game_score = 0;
+    game_lives = 3;
+    game_level = 0;
+}
+
+---- enemies.c (entity pool pattern) ----------------------------------------
+#define MAX_ENEMIES 8
+typedef struct { uint8_t active; body_t body; anim_t anim; int8_t dir; } enemy_t;
+static enemy_t enemies[MAX_ENEMIES];
+
+void enemies_update(void) {
+    uint8_t i;
+    for (i = 0; i < MAX_ENEMIES; i++) {
+        enemy_t *e = &enemies[i];
+        if (!e->active) continue;
+        e->body.vx = e->dir > 0 ? FIX(1) : -FIX(1);
+        if (body_move(&e->body) & (HIT_LEFT | HIT_RIGHT)) e->dir = -e->dir;
+    }
+}

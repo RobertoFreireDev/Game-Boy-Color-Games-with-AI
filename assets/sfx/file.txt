@@ -1,0 +1,25 @@
+assets/sfx/ — sfx_*.c: sound effects. A tone SFX takes over CH1, a noise SFX takes over CH4, for a few
+frames. prio: a new SFX replaces the playing one only if its prio is >= (hurt 3, coin 2, jump 1).
+Every SFX ends with SFX_END. SFX data is never banked.
+sfx_menu already exists in assets/fonts/font_main.c (the engine's dialogs and menus use it): don't redefine it.
+Full conventions: CLAUDE.md sections 6.8 and 11.
+
+---- sfx_all.c --------------------------------------------------------------
+#include "engine/engine.h"
+/*                                   frames sweep duty  env   note */
+static const uint8_t d_jump[] = { SFX_TONE(10, 0x15, 0x80, 0xF3, A4), SFX_END };             /* rising */
+static const uint8_t d_coin[] = { SFX_TONE(4,  0x00, 0x80, 0xF1, B5),
+                                  SFX_TONE(12, 0x00, 0x80, 0xF3, E6), SFX_END };             /* two notes */
+static const uint8_t d_hurt[] = { SFX_TONE(12, 0x2E, 0x40, 0xF2, E5), SFX_END };             /* falling */
+/*                                    frames env   poly */
+static const uint8_t d_hit[]  = { SFX_NOISE(8,  0xF1, 0x40), SFX_END };                       /* crunch */
+static const uint8_t d_boom[] = { SFX_NOISE(4,  0xF1, 0x20), SFX_NOISE(40, 0xF7, 0x74), SFX_END };
+
+const sfx_t sfx_jump = { SFX_CH1, 1, d_jump };
+const sfx_t sfx_coin = { SFX_CH1, 2, d_coin };
+const sfx_t sfx_hurt = { SFX_CH1, 3, d_hurt };
+const sfx_t sfx_hit  = { SFX_CH4, 2, d_hit };
+const sfx_t sfx_boom = { SFX_CH4, 3, d_boom };
+
+---- assets.h ---------------------------------------------------------------
+extern const sfx_t sfx_jump, sfx_coin, sfx_hurt, sfx_hit, sfx_boom;

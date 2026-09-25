@@ -137,3 +137,8 @@ const uint8_t font_box_tiles[10 * 16] = {
     PX(0,0,0,0,0,0,0,0), PX(0,3,3,3,3,3,3,0), PX(0,0,3,3,3,3,0,0), PX(0,0,0,3,3,0,0,0),
     PX(0,0,0,0,0,0,0,0), PX(3,3,3,3,3,3,3,3), PX(2,2,2,2,2,2,2,2), PX(0,0,0,0,0,0,0,0),
 };
+
+/* UI blip used by the engine's dialog_show, dialog_choice and menu_run.
+   Kept here with the font so every game gets the engine's UI assets from this one file. */
+static const uint8_t d_menu[] = { SFX_TONE(3, 0x00, 0x40, 0xA1, C6), SFX_END };
+const sfx_t sfx_menu = { SFX_CH1, 1, d_menu };

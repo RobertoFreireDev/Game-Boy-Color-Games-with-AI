@@ -1,0 +1,35 @@
+src/scenes/ — one .c file per scene (title.c, level.c, gameover.c ...), declared in scenes.h.
+main.c starts scene_title, so every game must define it. Rename this example to title.c to start.
+Full conventions: CLAUDE.md sections 3 and 7.9.
+
+---- title.c ----------------------------------------------------------------
+#include "engine/engine.h"
+#include "assets.h"
+#include "scenes.h"
+#include "game/state.h"
+
+static uint8_t blink;
+
+static void title_enter(void) {
+    map_load(&map_title, 0);          /* 20x18 map: background art of the title screen */
+    cam_set(0, 0);
+    text_print(4, 12, "PRESS START");
+    music_play(&mus_title);
+    blink = 0;
+}
+
+static void title_update(void) {
+    blink++;
+    if ((blink & 31) == 0) text_print(4, 12, "PRESS START");
+    if ((blink & 31) == 16) text_clear(4, 12, 11, 1);
+    if (KEY_PRESSED(J_START)) {
+        rand_seed();
+        state_new_game();
+        scene_goto(&scene_level, TRANS_FADE_BLACK);
+    }
+}
+
+const scene_t scene_title = { title_enter, title_update, 0 };
+
+---- scenes.h ---------------------------------------------------------------
+extern const scene_t scene_title, scene_level;

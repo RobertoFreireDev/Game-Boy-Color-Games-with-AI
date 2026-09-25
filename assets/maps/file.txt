@@ -1,0 +1,30 @@
+assets/maps/ — map_*.c: ASCII-art maps + legend (char -> tile, palette, flags). Width and height
+20..200 tiles; every row exactly w chars; every char has a legend entry; pal 0-6; tile < tileset count.
+Title screens, menus and HUD backgrounds are 20x18 maps too. Made from source_art/mapsheets/*.png
+when the human supplies an image. Full conventions: CLAUDE.md sections 6.5 and 14.
+
+---- map_level1.c -----------------------------------------------------------
+#include "engine/engine.h"
+extern const tileset_def_t ts_forest;
+
+static const char * const rows[] = {
+ /*           1111111111 */
+ /* 01234567890123456789 */
+   "####################",
+   "#..................#",
+   "#.......~~~~.......#",
+   "#..P....~~~~....X..#",
+   "####################",
+};
+static const map_legend_t legend[] = {
+    { '.', 0, 0, 0 },                      /* grass */
+    { '#', 1, 0, TF_SOLID },               /* stone block */
+    { '~', 2, 1, TF_HAZARD },              /* water, BG palette 1 */
+    { 'P', 0, 0, TF_SPAWN },               /* player start, drawn as grass */
+    { 'X', 0, 0, TF_SPAWN | TF_TRIGGER },  /* exit */
+    { 0, 0, 0, 0 }
+};
+const map_def_t map_level1 = { 20, 5, rows, legend, &ts_forest };
+
+---- assets.h ---------------------------------------------------------------
+extern const map_def_t map_level1;

@@ -1,0 +1,40 @@
+assets/sprites/ — spr_*.c: sprite tiles + palette + sprite_def_t. Made from source_art/spritesheets/*.png
+when the human supplies an image, otherwise drawn by hand. Tiles are row-major inside a frame; frames
+follow each other. Tile count = w * h * frames. Visible pixels never use index 0 (transparent).
+Animations are frame lists in game code, not here. Full conventions: CLAUDE.md sections 6.3 and 14.
+
+---- spr_coin.c (8x8, 2 frames) ---------------------------------------------
+#include "engine/engine.h"
+
+const palette_color_t pal_coin[4] = { RGB8(0,0,0), RGB8(96,48,0), RGB8(240,184,32), RGB8(255,248,184) };
+
+/* 0 = transparent, 1 = outline, 2 = gold, 3 = shine */
+const uint8_t spr_coin_tiles[] = {
+    /* frame 0: coin face */
+    PX(0,0,1,1,1,1,0,0),
+    PX(0,1,2,3,3,2,1,0),
+    PX(1,2,3,2,2,2,2,1),
+    PX(1,2,3,2,2,2,2,1),
+    PX(1,2,2,2,2,2,2,1),
+    PX(1,2,2,2,2,2,2,1),
+    PX(0,1,2,2,2,2,1,0),
+    PX(0,0,1,1,1,1,0,0),
+    /* frame 1: coin edge (turning) */
+    PX(0,0,0,1,1,0,0,0),
+    PX(0,0,1,3,2,1,0,0),
+    PX(0,0,1,3,2,1,0,0),
+    PX(0,0,1,3,2,1,0,0),
+    PX(0,0,1,2,2,1,0,0),
+    PX(0,0,1,2,2,1,0,0),
+    PX(0,0,1,2,2,1,0,0),
+    PX(0,0,0,1,1,0,0,0),
+};
+
+const sprite_def_t spr_coin = { spr_coin_tiles, 1, 1, 2, pal_coin, 3 };   /* w, h, frames, pal, OBJ slot 3 */
+
+---- assets.h ---------------------------------------------------------------
+extern const sprite_def_t spr_coin;
+
+---- game code (animation) --------------------------------------------------
+static const uint8_t coin_frames[] = { 0, 1 };
+static const anim_def_t anim_coin = { coin_frames, 2, 12, 1 };   /* 2 steps, 12 frames each, loop */

@@ -1,23 +1,27 @@
 # CLAUDE.md — Game Boy Color games with GBDK-2020 (C only)
 
-You are the only developer on this project. The human describes games; you write **all** code, art, maps, music and sound effects as plain C files. Nothing is drawn in external editors, so every asset format below is designed to be written by hand, as text.
+You are the only developer on this project. The human describes games; you write **all** code, art, maps, music and sound effects as plain C files. Every asset format below is designed to be written by hand, as text. The human may also paste PNG sprite sheets and maps into `source_art/`; you read them and convert them into the same C asset files (section 14). The build never reads a PNG.
 
 Read this whole file before any task. Follow its conventions exactly — the engine, the assets and the build all depend on them.
+
+**Current state: template.** The engine (`src/engine/`), `src/main.c` and the shared UI assets (`assets/fonts/font_main.c`: font, dialog box tiles, `sfx_menu`) are finished and reusable. There is no game: `src/scenes/`, `src/game/` and every other `assets/` folder hold only a `file.txt` with a worked example of that folder's format, and `GAME.md` is an empty design template. Until a game defines `scene_title`, the build compiles everything and then fails at the link step with an undefined `_scene_title` — that is expected.
 
 ---
 
 ## 0. Golden rules
 
-1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no asset converters. Assets are `.c` files.
-   For helper scripts during development (checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project.
+1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no asset converters in the build. Assets are `.c` files.
+   For helper scripts during development (reading PNGs from `source_art/`, checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project.
 2. **Target: Game Boy Color only** (`-Wm-yC`). Always use CGB features: palettes, VRAM bank 1, BG attributes.
 3. **Respect hardware limits** (section 4). If a design exceeds them, change the design, don't hope.
 4. **No floats, no `malloc`, no recursion, no `printf` in game code.** Use integers and fixed point (section 9).
 5. **Every `.c` file name in the project must be unique** (object files go to one folder).
 6. **Never call `DISPLAY_OFF`** except inside `engine_init()` (the CGB screen flashes white). Load graphics while the screen is faded to black instead.
 7. After any change, **build** (`build.bat` / `build.sh`) and fix every error and warning before finishing.
-8. Keep engine code in `src/engine/`, game code in `src/scenes/` and `src/game/`, data in `assets/`. Don't put game logic in assets or asset data in code.
-9. If `src/engine/` does not exist yet, scaffold it first (section 12.1), then build an empty title scene to prove the toolchain works.
+8. Keep engine code in `src/engine/`, game code in `src/scenes/` and `src/game/`, data in `assets/`, the human's source images in `source_art/`. Don't put game logic in assets or asset data in code.
+9. The engine exists: build games on it and don't rewrite it. Change engine code only to fix a bug or add a reusable feature, and then update section 7 to match. If `src/engine/` is ever missing, scaffold it (section 12.1).
+10. **Never delete `assets/fonts/font_main.c`** and never define `sfx_menu` anywhere else: the engine's text, dialog and menu code needs `font_main`, `font_box_tiles` and `sfx_menu` from that file.
+11. Keep the `file.txt` in every folder. It is the format example for the next game; it is not compiled (the build only picks up `.c` files).
 
 ---
 
@@ -74,16 +78,20 @@ my-game/
 │   ├── scenes/               ← one file per scene: title.c, level.c, gameover.c
 │   │   └── scenes.h
 │   └── game/                 ← entities, player.c, enemies.c, game state
-└── assets/
-    ├── assets.h              ← extern declarations for EVERY asset (keep updated)
-    ├── palettes/             ← pal_*.c
-    ├── sprites/              ← spr_*.c
-    ├── tilesets/             ← ts_*.c
-    ├── maps/                 ← map_*.c
-    ├── fonts/                ← font_main.c
-    ├── music/                ← mus_*.c
-    └── sfx/                  ← sfx_all.c (or sfx_*.c)
+├── assets/
+│   ├── assets.h              ← extern declarations for EVERY asset (keep updated)
+│   ├── palettes/             ← pal_*.c
+│   ├── sprites/              ← spr_*.c
+│   ├── tilesets/             ← ts_*.c
+│   ├── maps/                 ← map_*.c
+│   ├── fonts/                ← font_main.c (font + box tiles + sfx_menu; shared by every game)
+│   ├── music/                ← mus_*.c
+│   └── sfx/                  ← sfx_all.c (or sfx_*.c)
+└── source_art/               ← PNGs pasted by the human, converted by the AI (section 14); never built
+    ├── spritesheets/         ← <name>.png (+ <name>.txt notes) → assets/sprites/spr_<name>.c
+    └── mapsheets/            ← <name>.png (+ <name>.txt notes) → assets/tilesets/ts_*.c + assets/maps/map_<name>.c
 ```
+Every game folder (`src/scenes/`, `src/game/`, each `assets/` subfolder, each `source_art/` subfolder) contains a `file.txt` with a complete example of what goes there. Read it before writing into that folder.
 
 ### 1.4 Build scripts (create exactly these)
 
@@ -178,9 +186,13 @@ Add `build/` to `.gitignore`.
 
 ## 2. How to work (AI workflow)
 
-For **a new game**: write `GAME.md` (genre, controls, scenes, entities, asset list, palette plan, VRAM budget) → scaffold engine if missing → create assets → create scenes → build → fix → summarize to the human what was made and how to play.
+For **a new game**: read the `file.txt` of each folder you'll write into → look in `source_art/` for PNGs and their notes → fill in `GAME.md` (genre, controls, scenes, entities, source art used, asset list, palette plan, VRAM budget) → convert the source art (section 14) and write the remaining assets by hand → write `src/game/` and `src/scenes/` (at least `scene_title`, added to `scenes.h`) → build → fix → summarize to the human what was made, how to play, and which images became which assets.
 
 For **each change**: read `GAME.md` and the files involved → edit → update `assets/assets.h` and `GAME.md` → build → fix.
+
+When the human adds or replaces a PNG in `source_art/`: convert it again (section 14), overwrite the generated asset file, keep tile/frame indices stable where game code or maps depend on them, then build.
+
+To **start over with a new game**: delete the game's `.c`/`.h` files in `src/scenes/`, `src/game/` and `assets/` (except `assets/fonts/font_main.c`), reset `assets.h`, `scenes.h` and `GAME.md` to the template form, keep every `file.txt`. Delete old PNGs in `source_art/` only if the human asks.
 
 When something can only be verified visually (art, feel, music), tell the human exactly what to look at in the emulator, and use `EMU_printf` (section 13) for debug output.
 
@@ -462,7 +474,11 @@ const uint8_t font_main[96 * 8] = {
 };
 /* 10 dialog-box tiles, 2bpp with PX(): TL, T, TR, L, FILL, R, BL, B, BR, NEXT-ARROW */
 const uint8_t font_box_tiles[10 * 16] = { /* PX rows */ };
+/* UI blip used by dialog_show / dialog_choice / menu_run */
+static const uint8_t d_menu[] = { SFX_TONE(3, 0x00, 0x40, 0xA1, C6), SFX_END };
+const sfx_t sfx_menu = { SFX_CH1, 1, d_menu };
 ```
+This file already exists and is shared by every game: don't rewrite or delete it. Restyle the font or the UI blip in place if a game needs it.
 
 ### 6.7 Music — `assets/music/mus_theme.c`
 
@@ -551,18 +567,16 @@ Register cheat sheet:
 #include "engine/engine.h"
 static const uint8_t d_jump[]  = { SFX_TONE(10, 0x15, 0x80, 0xF3, A4), SFX_END };
 static const uint8_t d_coin[]  = { SFX_TONE(4, 0x00, 0x80, 0xF1, B5), SFX_TONE(12, 0x00, 0x80, 0xF3, E6), SFX_END };
-static const uint8_t d_menu[]  = { SFX_TONE(3, 0x00, 0x40, 0xA1, C6), SFX_END };
 static const uint8_t d_hurt[]  = { SFX_TONE(12, 0x2E, 0x40, 0xF2, E5), SFX_END };
 static const uint8_t d_hit[]   = { SFX_NOISE(8, 0xF1, 0x40), SFX_END };
 static const uint8_t d_boom[]  = { SFX_NOISE(4, 0xF1, 0x20), SFX_NOISE(40, 0xF7, 0x74), SFX_END };
 const sfx_t sfx_jump = { SFX_CH1, 1, d_jump };
 const sfx_t sfx_coin = { SFX_CH1, 2, d_coin };
-const sfx_t sfx_menu = { SFX_CH1, 1, d_menu };
 const sfx_t sfx_hurt = { SFX_CH1, 3, d_hurt };
 const sfx_t sfx_hit  = { SFX_CH4, 2, d_hit };
 const sfx_t sfx_boom = { SFX_CH4, 3, d_boom };
 ```
-A new SFX replaces the one playing on the same channel only if its `prio` is ≥ the current one.
+A new SFX replaces the one playing on the same channel only if its `prio` is ≥ the current one. `sfx_menu` is already defined in `font_main.c` (6.6); defining it here too is a "multiple definition" link error.
 
 ### 6.9 assets/assets.h
 
@@ -573,11 +587,13 @@ A new SFX replaces the one playing on the same channel only if its `prio` is ≥
 extern const sprite_def_t spr_player;
 extern const tileset_def_t ts_forest;
 extern const map_def_t map_level1, map_title;
-extern const uint8_t font_main[], font_box_tiles[];
+extern const uint8_t font_main[], font_box_tiles[];   /* always present (font_main.c) */
 extern const song_t mus_theme;
-extern const sfx_t sfx_jump, sfx_coin, sfx_menu, sfx_hurt, sfx_hit, sfx_boom;
+extern const sfx_t sfx_menu;                          /* always present (font_main.c) */
+extern const sfx_t sfx_jump, sfx_coin, sfx_hurt, sfx_hit, sfx_boom;
 #endif
 ```
+In the template, `assets.h` holds only the two "always present" lines under empty section comments; add a game's externs under them.
 
 ---
 
@@ -722,7 +738,8 @@ extern uint16_t map_w_px, map_h_px;
 extern int16_t cam_x, cam_y;                       /* world pixel of screen top-left */
 void cam_set(int16_t x, int16_t y);                /* clamp + redraw full screen (use at scene start) */
 void cam_follow(int16_t wx, int16_t wy);           /* center on point with small dead zone, clamp, stream */
-void cam_shake(uint8_t frames, uint8_t strength);
+void cam_shake(uint8_t frames, uint8_t strength);  /* applied by cam_follow */
+void cam_reset(void);                              /* called by the scene manager */
 #define W2S_X(wx) ((wx) - cam_x)                   /* world -> screen */
 #define W2S_Y(wy) ((wy) - cam_y)
 ```
@@ -828,13 +845,17 @@ Platformer: `vy += GRAVITY` (e.g. 5), clamp `vy` to `FIX(4)`, jump `vy = -FIX(3)
 #define FONT_TILE(c) ((uint8_t)(((c) >= 32 && (c) < 128) ? 128 + (c) - 32 : 128))
 #define TILE_BLANK 128
 #define ATTR_BLANK 0x0F                    /* bank 1 + palette 7 */
+#define BOX_TILE0  224                     /* TL, T, TR, L, FILL, R, BL, B, BR, NEXT (bank 1) */
+#define BOX_TILE(n) ((uint8_t)(BOX_TILE0 + (n)))
+extern const palette_color_t pal_ui_default[4];   /* engine default UI colors (restore after text_set_colors) */
 void text_init(void);                      /* expand 1bpp font to 2bpp glyph by glyph (16-byte buffer),
                                               VBK_REG = 1, set_bkg_data(128 + i, 1, buf); box tiles at 224 */
 void text_set_colors(const palette_color_t *c4);   /* BG palette 7 */
 void text_print(uint8_t x, uint8_t y, const char *s);      /* BG layer, tile coords relative to camera
                                                               top-left: x + (cam_x>>3), wrapped &31 */
 void text_print_win(uint8_t x, uint8_t y, const char *s);  /* window layer */
-void text_print_num(uint8_t x, uint8_t y, uint16_t n, uint8_t digits);   /* zero padded */
+void text_print_num(uint8_t x, uint8_t y, uint16_t n, uint8_t digits);       /* BG, zero padded */
+void text_print_num_win(uint8_t x, uint8_t y, uint16_t n, uint8_t digits);   /* window, zero padded */
 void text_clear(uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 void box_draw_win(uint8_t x, uint8_t y, uint8_t w, uint8_t h);           /* bordered box on window */
 
@@ -890,6 +911,7 @@ void scene_update(void) {
 The engine keeps a RAM copy of all 16 palettes (`pal_ram[64]`: 0–31 BG, 32–63 OBJ) and a fade level 0 (normal) … 8 (fully black/white). `gfx_set_*_palette` writes to RAM and then applies the current level, so palettes loaded while faded out stay invisible.
 
 ```c
+extern palette_color_t pal_ram[64];                    /* 0-31 BG, 32-63 OBJ */
 void fade_init(void);                                  /* all black, level 8 */
 void fade_out(uint8_t frames_per_step, uint8_t to_white);   /* BLOCKING, 8 steps */
 void fade_in(uint8_t frames_per_step, uint8_t from_white);  /* BLOCKING */
@@ -1015,6 +1037,8 @@ Driver rules:
 
 ## 8. Art direction for AI-drawn pixels
 
+These apply to art you draw yourself and to cleaning up converted art (section 14): never change the human's drawing beyond what the hardware forces, but do apply these rules when you fill in missing frames or tiles.
+
 - Think in 8×8 tiles. Before writing `PX` rows, sketch the full sprite as a grid in a comment, then split into tiles.
 - Silhouette first: a 1-pixel dark outline (index 1) makes sprites readable on any background.
 - Sprites: index 1 outline, 2 main color, 3 highlight/skin. Index 0 is transparent — never use it for a visible pixel.
@@ -1058,9 +1082,17 @@ The linker prints an error about ROM/area overflow when non-banked code+data exc
 
 ## 12. Checklists
 
-### 12.1 Scaffold order (new project)
+### 12.0 New game from the template (normal case)
+1. Read `GAME.md` (empty template) and the `file.txt` of every folder you will write into.
+2. List `source_art/spritesheets/` and `source_art/mapsheets/`; read every PNG and its `.txt` notes.
+3. Fill in `GAME.md`, including the "Source art" table (image → asset) and the per-scene VRAM budget.
+4. Convert the source art (section 14); write the other assets by hand (section 6).
+5. `src/game/state.c` and other logic, then the scenes (at least `scene_title`), declared in `scenes.h`.
+6. Update `assets.h`, build, fix, summarize.
+
+### 12.1 Scaffold order (only if the engine is missing)
 1. `build.bat`, `build.sh`, `run.bat`, `.vscode/*`, `.gitignore`, `GAME.md`.
-2. Engine in this order: `tiles.h`, `core`, `input`, `fade`, `gfx`, `sprites`, `text` (+ `font_main.c` with all 96 glyphs and box tiles), `scene`, `audio`, `anim`, `map`, `collide`, `tween`, `particles`, `engine.h`.
+2. Engine in this order: `tiles.h`, `core`, `input`, `fade`, `gfx`, `sprites`, `text` (+ `font_main.c` with all 96 glyphs, box tiles and `sfx_menu`), `scene`, `audio`, `anim`, `map`, `collide`, `tween`, `particles`, `engine.h`.
 3. `assets.h`, a title map, `scenes/title.c`, `main.c`. Build and fix.
 4. Then the actual game.
 
@@ -1074,6 +1106,7 @@ The linker prints an error about ROM/area overflow when non-banked code+data exc
 - [ ] Music: each channel's loop length checked; SFX end with `SFX_END`.
 - [ ] New assets declared in `assets.h`; new files have unique names.
 - [ ] Every scene's `update` redraws all its sprites.
+- [ ] Converted art: the helper's tile count and color-set count fit the limits; every generated asset names its source PNG in its first comment; `GAME.md` source-art table updated.
 
 ## 13. Debugging and troubleshooting
 
@@ -1091,4 +1124,137 @@ The linker prints an error about ROM/area overflow when non-banked code+data exc
 | Slowdown | Heavy math per frame, too many entities, `%`/`/` in loops, full-screen redraws every frame |
 | Crash after adding data | ROM overflow into bank switching problems → section 10 |
 | `?ASlink-Warning-Undefined Global` | Missing `.c` file, typo, or declared in `assets.h` but never defined |
-| Build error "multiple definition" | Two `.c` files with the same base name, or data defined in a header |
+| Build error "multiple definition" | Two `.c` files with the same base name, data defined in a header, or `sfx_menu` defined outside `font_main.c` |
+| Link error undefined `_scene_title` | Template with no game yet: write `src/scenes/title.c` (example in `src/scenes/file.txt`) |
+| Converted sprite/map colors look off | Source PNG was upscaled without `scale:` in its notes, or has anti-aliased/blurred edges (more colors than expected) |
+
+## 14. Source art pipeline (PNG → C assets)
+
+The human can draw in any pixel editor and paste PNGs into `source_art/`. You turn them into the normal C assets of section 6; from then on the C file is the asset and the PNG is only its source. Formats the human must follow, and example notes files, are in `source_art/spritesheets/file.txt` and `source_art/mapsheets/file.txt`.
+
+| Put in | Becomes |
+|---|---|
+| `source_art/spritesheets/<name>.png` (+ `<name>.txt`) | `assets/sprites/spr_<name>.c` (tiles, palette, `sprite_def_t`) + `anim_def_t` frame lists in the game code that uses it |
+| `source_art/mapsheets/<name>.png` (+ `<name>.txt`) | `assets/maps/map_<name>.c` (rows + legend) + `assets/tilesets/ts_<tileset>.c` (tiles + BG palettes, shared by maps with the same `tileset:`) |
+
+### 14.1 Reading a PNG
+
+1. **Look** at the image with the Read tool first: understand what it shows, the frame grid, which parts are background.
+2. **Measure** exact pixels with the helper below. Copy it into the scratchpad/temp folder (never into the project) and run it with Node. It needs no npm packages.
+   - `node png2gb.js <png> colors` — size, tile count, every color with its `RGB8()` and pixel count.
+   - `node png2gb.js <png> grid [--scale N] [--rect x,y,w,h]` — one symbol per pixel (`.` = transparent, `0-9a-zA-Z` = colors, most used first). `--rect` is in scaled pixels: use it to dump one frame at a time.
+   - `node png2gb.js <png> tiles [--scale N]` — unique 8×8 tiles (a tile and its X/Y/XY flips count once), each tile's color set, the distinct color sets, and the tile map (`id` + `X`/`Y`/`XY` flip).
+3. Symbols are **not** palette indices. You decide the mapping (e.g. `.`→0, darkest→1, main→2, lightest→3) and write it in a comment of the generated file.
+4. Transparency = alpha < 128 or magenta `#FF00FF`. Supported: non-interlaced, 1–8 bit, grayscale/RGB/indexed/alpha. The script says what to ask the human to re-save otherwise.
+
+### 14.2 Sprite sheets → `spr_<name>.c`
+
+1. Frame size, scale, rows/animations and `pal_slot` come from `<name>.txt`; if there is no notes file, infer them from the image and write your guesses into `GAME.md`.
+2. Dump each frame with `grid --rect`. Frame width/height must be multiples of 8; if the art is smaller, pad with transparent pixels (keep the feet on the bottom row).
+3. ≤ 3 visible colors per sprite (one OBJ palette). If the image has more, merge the closest colors (anti-aliasing, near-duplicates) and tell the human which ones you merged. If the notes ask for more colors, split into an overlay sprite with a second palette.
+4. Palette: index 0 transparent (any color, e.g. `RGB8(0,0,0)`), 1 darkest (outline), 2 main, 3 lightest, using the PNG's exact colors in `RGB8()`.
+5. Frames go into `spr_<name>_tiles[]` in sheet order (row by row, left to right), each frame's tiles row-major, with a comment per frame (`/* frame 5: walk 2 (row 1, col 1) */`). Keep the pixel sketch of each frame from the `grid` dump in comments when it helps.
+6. Frames facing left in the sheet are not needed: skip them if they are exact mirrors and use `SPR_FLIPX`.
+7. Write the `anim_def_t` lists from the notes where the game code uses the sprite (`speed` = frames per step).
+8. Check: tile count = `w * h * frames`, ≤ 128 sprite tiles per scene in total.
+
+### 14.3 Map sheets → `ts_<tileset>.c` + `map_<name>.c`
+
+1. Run `tiles`. Limits: ≤ 128 unique tiles per tileset (all maps sharing it, together), each tile ≤ 4 colors, ≤ 7 BG palettes per scene.
+2. **Palettes**: group the listed color sets into ≤ 7 palettes of 4 colors (a set that is a subset of another shares its palette). Order each palette light → dark (index 0 = the most common/background color). Too many sets → merge near-identical colors first, then ask the human which colors may change; never silently repaint.
+3. **Tileset**: one `PX` tile per unique tile, in the helper's order, commented with its index and a name (`/* 12: brick top-left */`). Tile pixels use the palette index of their color in the palette that tile belongs to.
+4. **Legend**: one character per (tile, palette, flags) combination. Pick readable characters (`#` wall, `.` floor/sky, `=` platform, `^` spikes, `~` water, letters for the rest); only printable ASCII 33–126 plus space, at most ~90 combinations. Flipped tiles get their own character with `TF_FLIPX`/`TF_FLIPY`.
+5. **Game meaning** comes from the notes (`solid`, `oneway`, `hazard`, `over`, `trigger`) → `TF_*` flags on the legend entries. Spawns (`spawn:` tile coordinates) become `TF_SPAWN` characters placed at those cells, drawn as the tile underneath (add a legend entry per spawn char, e.g. `'P'` drawn as the floor tile).
+6. **Rows**: write the tile map as `w`-character strings, with the column ruler comment of 6.5. Verify with Node that every row has exactly `w` characters and every character has a legend entry.
+7. `type: title` (or any 160×144 image) → a 20×18 map for a title/menu screen. Remember rows under text are overwritten by `text_print` at run time, and BG palette 7 is the UI palette.
+8. `type: tiles` (a tile sheet, no map) → only the tileset; draw the maps yourself in ASCII from the notes.
+
+### 14.4 After converting
+
+- First line comment of every generated asset: `/* Generated from source_art/spritesheets/player.png — edit the PNG and reconvert, or edit here and keep both in sync. */`
+- Update `assets.h`, the "Source art" table in `GAME.md`, build, and tell the human what you merged, padded or guessed, and what to check in Emulicious (Tile Viewer / Palette Viewer).
+- If the human later edits the C file by asking you (not the PNG), say that the PNG is now out of date.
+
+### 14.5 Helper script `png2gb.js` (copy to a temp folder, never commit)
+
+```js
+// png2gb.js <file.png> [colors|grid|tiles] [--scale N] [--rect x,y,w,h]
+const fs = require('fs'), zlib = require('zlib');
+const a = process.argv.slice(2), file = a[0], mode = a[1] && !a[1].startsWith('--') ? a[1] : 'colors';
+const opt = k => { const i = a.indexOf(k); return i < 0 ? null : a[i + 1]; };
+const scale = +(opt('--scale') || 1);
+
+// ---- decode (non-interlaced PNG, any color type, bit depth 1-8) ----
+const b = fs.readFileSync(file);
+let p = 8, W, H, depth, ctype, plte = [], trns = null, idat = [];
+while (p < b.length) {
+  const len = b.readUInt32BE(p), type = b.toString('ascii', p + 4, p + 8), d = b.subarray(p + 8, p + 8 + len);
+  if (type === 'IHDR') { W = d.readUInt32BE(0); H = d.readUInt32BE(4); depth = d[8]; ctype = d[9];
+    if (d[12]) throw 'interlaced PNG: re-save without interlacing'; if (depth > 8) throw '16-bit PNG: save as 8-bit'; }
+  if (type === 'PLTE') for (let i = 0; i < len; i += 3) plte.push([d[i], d[i + 1], d[i + 2], 255]);
+  if (type === 'tRNS') trns = d;
+  if (type === 'IDAT') idat.push(d);
+  p += 12 + len;
+}
+if (trns && ctype === 3) for (let i = 0; i < trns.length; i++) plte[i][3] = trns[i];
+const ch = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[ctype], bpp = Math.max(1, (ch * depth) >> 3), stride = (W * ch * depth + 7) >> 3;
+const raw = zlib.inflateSync(Buffer.concat(idat)), img = Buffer.alloc(stride * H);
+for (let y = 0; y < H; y++) {
+  const f = raw[y * (stride + 1)], src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+  for (let x = 0; x < stride; x++) {
+    const L = x >= bpp ? img[y * stride + x - bpp] : 0, U = y ? img[(y - 1) * stride + x] : 0,
+          UL = y && x >= bpp ? img[(y - 1) * stride + x - bpp] : 0;
+    let v = src[x];
+    if (f === 1) v += L; else if (f === 2) v += U; else if (f === 3) v += (L + U) >> 1;
+    else if (f === 4) { const q = L + U - UL, pa = Math.abs(q - L), pb = Math.abs(q - U), pc = Math.abs(q - UL);
+      v += pa <= pb && pa <= pc ? L : pb <= pc ? U : UL; }
+    img[y * stride + x] = v & 255;
+  }
+}
+const sample = (x, y, c) => { const bit = (x * ch + c) * depth, byte = img[y * stride + (bit >> 3)];
+  return depth === 8 ? byte : (byte >> (8 - depth - (bit & 7))) & ((1 << depth) - 1); };
+const up = v => depth === 8 ? v : Math.round(v * 255 / ((1 << depth) - 1));
+function rgba(x, y) {
+  if (ctype === 3) return plte[sample(x, y, 0)];
+  if (ctype === 0 || ctype === 4) { const g = up(sample(x, y, 0)); return [g, g, g, ctype === 4 ? sample(x, y, 1) : 255]; }
+  return [sample(x, y, 0), sample(x, y, 1), sample(x, y, 2), ctype === 6 ? sample(x, y, 3) : 255];
+}
+
+// ---- pixels as color keys ('-' = transparent: alpha < 128 or magenta FF00FF) ----
+const hex = v => v.toString(16).padStart(2, '0').toUpperCase();
+const r = (opt('--rect') || `0,0,${W / scale | 0},${H / scale | 0}`).split(',').map(Number);
+const w = r[2], h = r[3], px = [];
+for (let y = 0; y < h; y++) { px.push([]); for (let x = 0; x < w; x++) {
+  const c = rgba((r[0] + x) * scale, (r[1] + y) * scale);
+  px[y].push(c[3] < 128 || (c[0] === 255 && c[1] === 0 && c[2] === 255) ? '-' : hex(c[0]) + hex(c[1]) + hex(c[2]));
+} }
+const count = {}; px.flat().forEach(k => count[k] = (count[k] || 0) + 1);
+const keys = Object.keys(count).sort((p, q) => count[q] - count[p]);
+const SYM = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const sym = {}; let n = 0; keys.forEach(k => sym[k] = k === '-' ? '.' : SYM[n++] || '?');
+const rgb8 = k => k === '-' ? 'transparent' : `RGB8(${parseInt(k.slice(0, 2), 16)},${parseInt(k.slice(2, 4), 16)},${parseInt(k.slice(4), 16)})`;
+console.log(`${file}: ${W}x${H} px, scale ${scale} -> ${w}x${h} (${w / 8}x${h / 8} tiles), ${keys.length} colors`);
+keys.forEach(k => console.log(`  ${sym[k]}  #${k === '-' ? '------' : k}  ${rgb8(k)}  x${count[k]}`));
+
+if (mode === 'grid') px.forEach(row => console.log(row.map(k => sym[k]).join('')));
+
+if (mode === 'tiles') {   // unique 8x8 tiles (flips count as the same tile) + tile map
+  const tiles = [], ids = {}, map = [], sets = {};
+  for (let ty = 0; ty < h >> 3; ty++) { map.push([]); for (let tx = 0; tx < w >> 3; tx++) {
+    const t = []; for (let y = 0; y < 8; y++) t.push(px[ty * 8 + y].slice(tx * 8, tx * 8 + 8).map(k => sym[k]).join(''));
+    const fx = t.map(s => [...s].reverse().join('')), fy = [...t].reverse(), fxy = [...fx].reverse();
+    let id = ids[t.join('/')], f = '';
+    if (id === undefined && ids[fx.join('/')] !== undefined) { id = ids[fx.join('/')]; f = 'X'; }
+    if (id === undefined && ids[fy.join('/')] !== undefined) { id = ids[fy.join('/')]; f = 'Y'; }
+    if (id === undefined && ids[fxy.join('/')] !== undefined) { id = ids[fxy.join('/')]; f = 'XY'; }
+    if (id === undefined) { id = tiles.length; ids[t.join('/')] = id; tiles.push(t); }
+    map[ty].push(id + f);
+  } }
+  console.log(`\n${tiles.length} unique tiles (limit 128 per scene)`);
+  tiles.forEach((t, i) => { const cs = [...new Set(t.join(''))].sort().join(''); (sets[cs] = sets[cs] || []).push(i);
+    console.log(`tile ${i}  colors [${cs}]${cs.replace('.', '').length > 4 ? '  !! more than 4 colors' : ''}`); t.forEach(s => console.log('  ' + s)); });
+  console.log(`\n${Object.keys(sets).length} distinct color sets (merge them into <= 7 BG palettes of 4 colors):`);
+  Object.keys(sets).forEach(s => console.log(`  [${s}] tiles ${sets[s].join(',')}`));
+  console.log('\ntile map (id + X/Y flip):'); map.forEach(row => console.log(row.map(v => String(v).padStart(4)).join('')));
+}
+```

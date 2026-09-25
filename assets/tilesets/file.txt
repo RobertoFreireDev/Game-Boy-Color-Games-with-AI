@@ -1,0 +1,25 @@
+assets/tilesets/ — ts_*.c: BG tiles (max 128 per scene) + the BG palettes they use (max 7, slots 0-6).
+Made from source_art/mapsheets/*.png when the human supplies an image. Comment every tile with its
+index and name: maps refer to tiles by index. count = number of tiles written.
+Full conventions: CLAUDE.md sections 6.4 and 14.
+
+---- ts_forest.c ------------------------------------------------------------
+#include "engine/engine.h"
+extern const palette_color_t pal_forest_ground[4], pal_forest_water[4];
+
+const uint8_t ts_forest_tiles[] = {
+    /* 0: grass */
+    PX(0,0,0,0,0,0,0,0), PX(0,0,1,0,0,0,0,0), PX(0,0,0,0,0,0,0,0), PX(0,0,0,0,0,1,0,0),
+    PX(0,0,0,0,0,0,0,0), PX(0,1,0,0,0,0,0,0), PX(0,0,0,0,0,0,1,0), PX(0,0,0,0,0,0,0,0),
+    /* 1: stone block */
+    PX(1,1,1,1,1,1,1,3), PX(1,2,2,2,2,2,2,3), PX(1,2,2,2,2,2,2,3), PX(1,2,2,2,2,2,2,3),
+    PX(1,2,2,2,2,2,2,3), PX(1,2,2,2,2,2,2,3), PX(1,2,2,2,2,2,2,3), PX(3,3,3,3,3,3,3,3),
+    /* 2: water */
+    PX(0,0,0,0,0,0,0,0), PX(0,1,1,0,0,0,0,0), PX(1,0,0,1,0,0,1,1), PX(0,0,0,0,1,1,0,0),
+    PX(0,0,0,0,0,0,0,0), PX(0,0,0,0,0,1,1,0), PX(1,1,0,0,1,0,0,1), PX(0,0,1,1,0,0,0,0),
+};
+const palette_color_t * const ts_forest_pals[] = { pal_forest_ground, pal_forest_water };  /* BG 0, BG 1 */
+const tileset_def_t ts_forest = { ts_forest_tiles, 3, ts_forest_pals, 2 };
+
+---- assets.h ---------------------------------------------------------------
+extern const tileset_def_t ts_forest;
