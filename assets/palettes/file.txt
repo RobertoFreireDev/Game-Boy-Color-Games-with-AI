@@ -1,7 +1,7 @@
 assets/palettes/ — pal_*.c: shared 4-color palettes (RGB8 0-255, rounded to RGB555).
 BG: index 0 = lightest/background color. Sprites: 0 = transparent, 1 = outline, 2 = main, 3 = highlight.
 Palettes used by only one sprite or tileset may live inside that file instead. Declare each in assets.h.
-Full conventions: CLAUDE.md section 6.2.
+Full conventions: docs/graphics.md (6.2).
 
 ---- pal_forest.c -----------------------------------------------------------
 #include "engine/engine.h"

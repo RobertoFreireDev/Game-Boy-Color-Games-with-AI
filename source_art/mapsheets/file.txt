@@ -1,7 +1,7 @@
 source_art/mapsheets/ — PNG maps and tile sheets pasted by the human. The AI cuts each map into 8x8
 tiles, removes duplicates (flipped copies included), and writes assets/tilesets/ts_<tileset>.c plus
 assets/maps/map_<name>.c (ASCII rows + legend). PNGs here are source files only: the build never
-reads them. Full process: CLAUDE.md section 14.
+reads them. Full process: docs/source-art.md (14).
 
 ---- what to put here ---------------------------------------------------------
 <name>.png   a whole map (level, title screen, menu background) or a tile sheet

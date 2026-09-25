@@ -1,7 +1,7 @@
 assets/tilesets/ — ts_*.c: BG tiles (max 128 per scene) + the BG palettes they use (max 7, slots 0-6).
 Made from source_art/mapsheets/*.png when the human supplies an image. Comment every tile with its
 index and name: maps refer to tiles by index. count = number of tiles written.
-Full conventions: CLAUDE.md sections 6.4 and 14.
+Full conventions: docs/graphics.md (6.4) and docs/source-art.md (14).
 
 ---- ts_forest.c ------------------------------------------------------------
 #include "engine/engine.h"

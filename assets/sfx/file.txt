@@ -2,7 +2,7 @@ assets/sfx/ — sfx_*.c: sound effects. A tone SFX takes over CH1, a noise SFX t
 frames. prio: a new SFX replaces the playing one only if its prio is >= (hurt 3, coin 2, jump 1).
 Every SFX ends with SFX_END. SFX data is never banked.
 sfx_menu already exists in assets/fonts/font_main.c (the engine's dialogs and menus use it): don't redefine it.
-Full conventions: CLAUDE.md sections 6.8 and 11.
+Full conventions: docs/audio.md (6.8 and 11).
 
 ---- sfx_all.c --------------------------------------------------------------
 #include "engine/engine.h"

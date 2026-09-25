@@ -1,7 +1,7 @@
 assets/sprites/ — spr_*.c: sprite tiles + palette + sprite_def_t. Made from source_art/spritesheets/*.png
 when the human supplies an image, otherwise drawn by hand. Tiles are row-major inside a frame; frames
 follow each other. Tile count = w * h * frames. Visible pixels never use index 0 (transparent).
-Animations are frame lists in game code, not here. Full conventions: CLAUDE.md sections 6.3 and 14.
+Animations are frame lists in game code, not here. Full conventions: docs/graphics.md (6.3) and docs/source-art.md (14).
 
 ---- spr_coin.c (8x8, 2 frames) ---------------------------------------------
 #include "engine/engine.h"

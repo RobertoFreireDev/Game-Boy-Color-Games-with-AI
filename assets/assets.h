@@ -2,7 +2,7 @@
 #define ASSETS_H
 #include "engine/engine.h"
 
-/* Add one extern line for EVERY asset the game defines (see CLAUDE.md 6.9). */
+/* Add one extern line for EVERY asset the game defines (see docs/graphics.md 6.9). */
 
 /* palettes */
 

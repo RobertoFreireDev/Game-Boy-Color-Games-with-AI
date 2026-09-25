@@ -1,7 +1,7 @@
 assets/maps/ — map_*.c: ASCII-art maps + legend (char -> tile, palette, flags). Width and height
 20..200 tiles; every row exactly w chars; every char has a legend entry; pal 0-6; tile < tileset count.
 Title screens, menus and HUD backgrounds are 20x18 maps too. Made from source_art/mapsheets/*.png
-when the human supplies an image. Full conventions: CLAUDE.md sections 6.5 and 14.
+when the human supplies an image. Full conventions: docs/graphics.md (6.5) and docs/source-art.md (14).
 
 ---- map_level1.c -----------------------------------------------------------
 #include "engine/engine.h"

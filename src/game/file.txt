@@ -1,7 +1,7 @@
 src/game/ — game logic shared by scenes: player, enemies, entities, game state.
 State that survives scene changes (score, lives, level) goes in state.c. Every function is declared
 in a header. Fixed-size entity arrays with an active flag, uint8_t indices, no malloc/floats.
-Full conventions: CLAUDE.md sections 7 and 9.
+Full conventions: docs/engine-api.md (7) and CLAUDE.md (9).
 
 ---- state.h ----------------------------------------------------------------
 #ifndef STATE_H

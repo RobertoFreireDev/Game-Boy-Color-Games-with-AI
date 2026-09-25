@@ -1,7 +1,7 @@
 assets/music/ — mus_*.c: one song per file, 4 channel byte streams. 1 tick = 16th note, fpt = frames
 per tick (BPM ~ 900 / fpt). CH2 melody, CH1 harmony (SFX interrupt it), CH3 bass, CH4 drums.
 Every channel's looped part must last the same number of ticks (or a divisor): count them per bar.
-Music data is never banked. Full conventions: CLAUDE.md sections 6.7 and 11.
+Music data is never banked. Full conventions: docs/audio.md (6.7 and 11).
 
 ---- mus_theme.c (C major, fpt 7 = ~128 BPM, loop 32 ticks) -----------------
 #include "engine/engine.h"
