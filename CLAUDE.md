@@ -28,7 +28,7 @@ If you change something documented in a `docs/` file (engine API, asset format, 
 ## 0. Golden rules
 
 1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no asset converters in the build. Assets are `.c` files.
-   For helper scripts during development (reading PNGs from `source_art/`, checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project.
+   For helper scripts during development (reading PNGs from `source_art/`, checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project. The one exception is `tests/tools/` (tests for `tools/pixel-editor.html`, run with `node --test`): when you change the editor, update its tests and run them.
 2. **Target: Game Boy Color only** (`-Wm-yC`). Always use CGB features: palettes, VRAM bank 1, BG attributes.
 3. **Respect hardware limits** (section 4). If a design exceeds them, change the design, don't hope.
 4. **No floats, no `malloc`, no recursion, no `printf` in game code.** Use integers and fixed point (section 9).
@@ -89,6 +89,8 @@ my-game/
 │   └── sfx/                  ← sfx_all.c (or sfx_*.c)
 ├── tools/
 │   └── pixel-editor.html     ← browser pixel editor for source_art PNGs (GBC palette rules built in); never built
+├── tests/
+│   └── tools/                ← tests for tools/ (`node --test`, headless Chrome/Edge, no npm); never built
 └── source_art/               ← PNGs pasted by the human, converted by the AI (section 14); never built
     ├── spritesheets/         ← <name>.png (+ <name>.txt notes) → assets/sprites/spr_<name>.c
     └── mapsheets/            ← <name>.png (+ <name>.txt notes) → assets/tilesets/ts_*.c + assets/maps/map_<name>.c
