@@ -1,6 +1,6 @@
 /*
  * Unit tests for tools/pixel-editor.html.
- * Run from the project root:   node --test tests/
+ * Run from the project root:   node --test "tests/tools/*.test.mjs"   (see docs/testing.md)
  * Needs Node 22+ and Chrome or Edge (headless, see browser.mjs). No npm packages.
  *
  * Every test starts from a freshly loaded editor with empty localStorage, then calls the

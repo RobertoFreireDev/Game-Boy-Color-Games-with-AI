@@ -20,6 +20,7 @@ Section numbers are stable across files: "section 7.6" always means the heading 
 | [docs/banking.md](docs/banking.md) | 10 | Linker reports ROM/area overflow (past 32 KB) |
 | [docs/debugging.md](docs/debugging.md) | 13 | A build fails, or something looks/sounds wrong in the emulator |
 | [docs/setup.md](docs/setup.md) | 1.1, 1.2, 1.4, 12.1 | Installing tools, recreating build scripts / `.vscode` files, scaffolding a missing engine |
+| [docs/testing.md](docs/testing.md) | 15–15.2 | Changing `src/engine/` or `tools/`, writing or running unit tests (engine: `node tests/engine/run.mjs`, tools: `node --test "tests/tools/*.test.mjs"`) |
 
 If you change something documented in a `docs/` file (engine API, asset format, build script), update that file in the same change.
 
@@ -28,7 +29,7 @@ If you change something documented in a `docs/` file (engine API, asset format, 
 ## 0. Golden rules
 
 1. **Language: C only** (SDCC through GBDK-2020's `lcc`). No C++, no asset converters in the build. Assets are `.c` files.
-   For helper scripts during development (reading PNGs from `source_art/`, checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project. The one exception is `tests/tools/` (tests for `tools/pixel-editor.html`, run with `node --test`): when you change the editor, update its tests and run them.
+   For helper scripts during development (reading PNGs from `source_art/`, checking map row widths, counting music ticks, one-off calculations), use **Node.js** (`node -e "..."` or a throwaway `.js` in a temp folder), **never Python**. The build must never depend on them, and no `.js` files are committed to the project. The one exception is the unit tests in `tests/` (rule 12, [docs/testing.md](docs/testing.md)).
 2. **Target: Game Boy Color only** (`-Wm-yC`). Always use CGB features: palettes, VRAM bank 1, BG attributes.
 3. **Respect hardware limits** (section 4). If a design exceeds them, change the design, don't hope.
 4. **No floats, no `malloc`, no recursion, no `printf` in game code.** Use integers and fixed point (section 9).
@@ -39,6 +40,7 @@ If you change something documented in a `docs/` file (engine API, asset format, 
 9. The engine exists: build games on it and don't rewrite it. Change engine code only to fix a bug or add a reusable feature, and then update section 7 ([docs/engine-api.md](docs/engine-api.md)) to match. If `src/engine/` is ever missing, scaffold it (section 12.1, [docs/setup.md](docs/setup.md)).
 10. **Never delete `assets/fonts/font_main.c`** and never define `sfx_menu` anywhere else: the engine's text, dialog and menu code needs `font_main`, `font_box_tiles` and `sfx_menu` from that file.
 11. Keep the `file.txt` in every folder. It is the format example for the next game; it is not compiled (the build only picks up `.c` files).
+12. **Every new feature, bug fix or behavior change in `src/engine/` or `tools/` needs new or updated unit tests** in the same change: `tests/engine/` for the engine, `tests/tools/` for the tools ([docs/testing.md](docs/testing.md)). Run the matching suite and make it pass before finishing.
 
 ---
 
@@ -89,8 +91,9 @@ my-game/
 │   └── sfx/                  ← sfx_all.c (or sfx_*.c)
 ├── tools/
 │   └── pixel-editor.html     ← browser pixel editor for source_art PNGs (GBC palette rules built in); never built
-├── tests/
-│   └── tools/                ← tests for tools/ (`node --test`, headless Chrome/Edge, no npm); never built
+├── tests/                    ← unit tests (docs/testing.md); never part of the game build
+│   ├── engine/               ← tests for src/engine/ (`node tests/engine/run.mjs`, headless GBC emulator)
+│   └── tools/                ← tests for tools/ (`node --test "tests/tools/*.test.mjs"`, headless Chrome/Edge, no npm)
 └── source_art/               ← PNGs pasted by the human, converted by the AI (section 14); never built
     ├── spritesheets/         ← <name>.png (+ <name>.txt notes) → assets/sprites/spr_<name>.c
     └── mapsheets/            ← <name>.png (+ <name>.txt notes) → assets/tilesets/ts_*.c + assets/maps/map_<name>.c
